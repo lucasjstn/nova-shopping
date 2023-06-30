@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import bcryptjs from "bcryptjs";
+import dotenv from "dotenv"
+
+dotenv.config({ path: "../../config.env" });
 
 export const userSchema = new mongoose.Schema({
   username: {
@@ -29,6 +33,17 @@ export const userSchema = new mongoose.Schema({
     minlength: [8, "Your password can't have less than 8 characters."], 
     maxlength: [18, "Your password can't take more than 18 characters."]
   }
+})
+
+//Query middleware for Hash password
+userSchema.pre("save", async function(next) {
+
+  if(!this.isModified("password")) return next();
+
+  this.password = await bcryptjs.hash(this.password, 12);
+
+  this.confirmPassword = undefined;
+
 })
 
 const User = mongoose.model("User", userSchema);

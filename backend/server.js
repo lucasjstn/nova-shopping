@@ -2,11 +2,12 @@ import mongoose from "mongoose";;
 import dotenv from "dotenv";
 
 import { app } from "./src/App.js"
-const PORT = process.env.PORT || 3001;
 
 mongoose.set("strictQuery", false);
 
 dotenv.config({ path: "./config.env" });
+
+const PORT = process.env.PORT;
 
 mongoose.connect(process.env.DATABASE_CLOUD, { usenewurlparser: true })
   .then(()=> {

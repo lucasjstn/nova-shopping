@@ -1,7 +1,14 @@
 import User from "../models/userModel.js";
 import validator from "validator";
+import CustomError from "../utils/CustomError.js";
 
-export const signUp = async (request, response, next) => {
+const asyncErrorHandler = (func) => {
+  return (req, res, next) => {
+    func(req, res, next).catch(err => { next(err)});
+  }
+}
+
+export const signUp = asyncErrorHandler( async (request, response, next) => {
 
 
   const strongPassword = validator.isStrongPassword(request.body.password, {
@@ -12,11 +19,12 @@ export const signUp = async (request, response, next) => {
   })
 
   if(!strongPassword) {
-    response.status(400).json({
-      status: "failed",
-      message: "Please enter a password with minimum 8 characters length, a lower case letter and a number"
-    })
-    
+    // response.status(400).json({
+    //   status: "failed",
+    //   message: "Please enter a password with minimum 8 characters length, a lower case letter and a number"
+    // })
+    const error = new CustomError("Please enter a password with minimum 8 characters length, a lower case letter and a number", 400)  
+    next(error);
     return;
   }
 
@@ -24,11 +32,13 @@ export const signUp = async (request, response, next) => {
   const confirmPassword = request.body.confirmPassword;
 
   if(password !== confirmPassword) {
-    response.status(400).json({
-      status: "failed",
-      message: "Please confirm your password."
-    })
+    // response.status(400).json({
+    //   status: "failed",
+    //   message: "Please confirm your password."
+    // })
 
+    const error = new CustomError("Please confirm your password", 400);
+    next(error);
     return;
   }
 
@@ -41,4 +51,4 @@ export const signUp = async (request, response, next) => {
   })
 
 
-}
+})

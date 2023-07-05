@@ -1,17 +1,15 @@
-import User from "../models/userModel.js";
-import validator from "validator";
-import CustomError from "../utils/CustomError.js";
-
-const asyncErrorHandler = (func) => {
-  return (req, res, next) => {
-    func(req, res, next).catch(err => { next(err)});
-  }
-}
-
-export const signUp = asyncErrorHandler( async (request, response, next) => {
+import User from '../models/User.js'
+import validator from "validator"
+import catchAsync from '../utils/catchAsync.js'
+import AppError from '../utils/error/AppError.js'
+import jwt from 'jsonwebtoken'
 
 
-  const strongPassword = validator.isStrongPassword(request.body.password, {
+export const signUp = catchAsync (async (req, res, next) => {
+ 
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmpassword
+  const strongPassword = validator.isStrongPassword(password, {
     minLowercase: 1,
     minUppercase: 0,
     minSymbols: 0,
@@ -19,36 +17,38 @@ export const signUp = asyncErrorHandler( async (request, response, next) => {
   })
 
   if(!strongPassword) {
-    // response.status(400).json({
-    //   status: "failed",
-    //   message: "Please enter a password with minimum 8 characters length, a lower case letter and a number"
-    // })
-    const error = new CustomError("Please enter a password with minimum 8 characters length, a lower case letter and a number", 400)  
-    next(error);
+    res.status(400).json({
+        message: "weak password"
+    })
     return;
   }
 
-  const password = request.body.password; 
-  const confirmPassword = request.body.confirmPassword;
-
-  if(password !== confirmPassword) {
-    // response.status(400).json({
-    //   status: "failed",
-    //   message: "Please confirm your password."
-    // })
-
-    const error = new CustomError("Please confirm your password", 400);
-    next(error);
+ if(password !== confirmPassword) {
+    res.status(400).json({
+        message: "please asdfkksaconfirm your password"
+    })
     return;
   }
 
-  const newUser = await User.create(request.body);
+  const user = await User.findOne({ username: req.body.username });
 
-  console.log(request.body);
-  response.status(200).json({
-    status: "success",
-    message: "User created."
+  if(user) {
+    next(new AppError("user already exists", 400))
+  }
+
+  const newUser = await User.create(req.body)
+
+  if(!newUser) {
+    next(new AppError("user not created", 400))
+  }
+
+  const token = jwt.sign({ id: newUser._id}, process.env.JWT_SECRET, {expiresIn:process.env.JWT_EXPIRES_IN})
+
+  console.log(process.env.JWT_EXPIRES_IN)
+
+  res.status(200).json({
+    message: "created"
   })
 
-
 })
+

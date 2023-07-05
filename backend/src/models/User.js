@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
-import bcryptjs from "bcryptjs";
-import dotenv from "dotenv";
-import validator from "validator";
+import mongoose from 'mongoose'
+import bcryptjs from 'bcryptjs'
+import dotenv from 'dotenv'
+import validator from 'validator'
 
-dotenv.config({ path: "../../config.env" });
+dotenv.config({ path: "../../config.env" })
 
 export const userSchema = new mongoose.Schema({
   username: {
@@ -37,26 +37,25 @@ export const userSchema = new mongoose.Schema({
     require: [true, "Please confirm your password"],
     minlength: [8, "Your password can't have less than 8 characters."], 
     maxlength: [18, "Your password can't take more than 18 characters."],
-    validate: {
-      validator: (item) => {
-        return item === this.password;
-      },
-      message: "Passwords do not match."
-    } 
   }
 })
 
-//Query middleware for Hash password
+console.log("user schema:", userSchema.confirmpassword)
+
 userSchema.pre("save", async function(next) {
+  if(!this.isModified("password")) return next()
 
-  if(!this.isModified("password")) return next();
-
-  this.password = await bcryptjs.hash(this.password, 12);
-
-  this.confirmPassword = undefined;
-
+  this.password = await bcryptjs.hash(this.password, 12)
+  this.confirmpassword = "";
 })
 
-const User = mongoose.model("User", userSchema);
+// userSchema.pre("save", async function(next) {
+//   if(this.password !== this.confirmPassword) {
+// console.log('aksdkfdkas')
+//     next()
+//   }
+// })
+
+const User = mongoose.model("User", userSchema)
 
 export default User;

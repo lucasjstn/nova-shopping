@@ -3,7 +3,6 @@ import dotenv from 'dotenv'
 dotenv.config({ path: "../../../config.env"})
 
 const sendErrorForDev = (err, res) => {
-  console.log("Dev error invoked")
   console.error(err)
   res.status(err.statusCode).json({
     prod: {
@@ -18,8 +17,6 @@ const sendErrorForDev = (err, res) => {
 
 
 const sendErrorForProd = (err, res) => {  
-  console.log("Prod error invoked");
-
   console.log(err.isOperational);
 
   if(err.isOperational){

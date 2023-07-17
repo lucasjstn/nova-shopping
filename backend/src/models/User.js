@@ -31,16 +31,18 @@ export const userSchema = new mongoose.Schema({
     require: [true, "You need to set a password."],
     minlength: [8, "Your password can't have less than 8 characters."], 
     maxlength: [18, "Your password can't take more than 18 characters."],
+    select: false
   },
   confirmPassword: {
     type: String,
     require: [true, "Please confirm your password"],
     minlength: [8, "Your password can't have less than 8 characters."], 
     maxlength: [18, "Your password can't take more than 18 characters."],
+  },
+  passwordChangedAt: {
+    type: Date,
   }
 })
-
-console.log("user schema:", userSchema.confirmpassword)
 
 userSchema.pre("save", async function(next) {
   if(!this.isModified("password")) return next()
@@ -51,10 +53,19 @@ userSchema.pre("save", async function(next) {
 
 // userSchema.pre("save", async function(next) {
 //   if(this.password !== this.confirmPassword) {
-// console.log('aksdkfdkas')
 //     next()
 //   }
 // })
+
+userSchema.methods.passwordCheck = async function (userEnteredPassword, password) {
+ return await bcryptjs.compare(userEnteredPassword, password)
+}
+
+userSchema.pre("save", function(next) {
+  this.passwordChangedAt = Date.now() - 1
+
+  next()
+})
 
 const User = mongoose.model("User", userSchema)
 
